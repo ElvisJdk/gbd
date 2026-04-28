@@ -1,0 +1,8 @@
+IMPORTADOR = @id_importador + nombre + direccion + telefono
+FACTURA = @id_factura + fecha + numero + id_importador 
+DETALLE_FACTURA = {@id_factura} + {@id_componente} + cantidad + precio_unitario
+COMPONENTE = @id_componente + nombre + tipo + descripcion
+OPERARIO = @id_operario + nombre + dni + especialidad
+HOJA_DE_CONFECCION = {@id_operario} + {@id_componente} + fecha + cantidad
+TELEVISOR = @id_televisor + modelo + descripcion 
+MAPA_DE_ARMADO = {@id_televisor} + {@id_componente} + orden + ubicacion
