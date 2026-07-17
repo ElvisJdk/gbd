@@ -267,3 +267,165 @@ on productos(id_fabricante);
 
 drop index index_2
 on productos;
+
+/*
+7 -  Se desea modificar un sistema de gestión de empleados para incluir  un mecanismo automático que transfiera a los 
+	empleados que cumplen con ciertos criterios de jubilación a una tabla especializada llamada jubilados. 
+	Los criterios de jubilación son: los empleados deben tener 30 años o más de antigüedad y 65 años o más de edad. 
+	Además, se requiere que cualquier inserción en la tabla empleados que cumpla con estos criterios resulte en una inserción
+    automática en la tabla jubilados.
+
+*/
+
+create database ejercicio_7;
+use ejercicio_7;
+CREATE TABLE empleados (
+  nombre VARCHAR(50) NOT NULL,
+  edad INT NOT NULL,
+  antiguedad INT NOT NULL
+);
+
+
+CREATE TABLE jubilados (
+  nombre VARCHAR(50) NOT NULL,
+  edad INT NOT NULL,
+  antiguedad INT NOT NULL
+);
+
+delimiter //
+
+create trigger trigger_check_edad_before_insert2
+before insert on empleados
+for each row
+begin
+	if new.edad >= 65 and new.antiguedad >= 30 then
+    insert into jubilados(nombre, edad, antiguedad)
+    values (new.nombre, new.edad, new.antiguedad);
+
+    end if;
+end //
+
+delimiter ;
+
+drop trigger trigger_check_edad_before_insert;
+
+insert into empleados values('elvis',25,1);
+insert into empleados values ('dalto',70,30);
+select * from empleados;
+select * from jubilados;
+
+/*
+8 - Crear un procedimiento almacenado llamado ActualizarEmpleados que tome dos  parámetros de entrada:
+*/
+create database ejercicio_8;
+use ejercicio_8;
+
+CREATE TABLE empleados (
+    codigo_empleado VARCHAR(10) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    salario DECIMAL(10,2) NOT NULL
+);
+
+INSERT INTO empleados (codigo_empleado, nombre, salario) VALUES
+('EMP001', 'Juan Pérez', 250000.00),
+('EMP002', 'María Gómez', 180000.00),
+('EMP003', 'Carlos Díaz', 220000.00),
+('EMP004', 'Ana López', 195000.00),
+('EMP005', 'Pedro Ruiz', 210000.00);
+
+delimiter //
+
+create procedure ActualizarEmpleados(in codigo_emp VARCHAR(10), in salario_actualizado DECIMAL(10,2))
+begin
+	declare salario_actual decimal(10,2);
+    
+    start transaction;
+    select salario
+    into salario_actual
+    from empleados
+    where codigo_empleado = codigo_emp;
+    
+    if salario_actualizado < salario_actual then
+		rollback;
+        select 'salario actualizado menos que el actual' as mensaje;
+	else
+		update empleados 
+		set	   salario = salario_actualizado
+        where  codigo_empleado = codigo_emp;
+        commit;
+        select 'salario actualizado' as mensaje;
+	end if;
+end //
+
+delimiter ;
+
+select * from empleados;
+
+CALL ActualizarEmpleados('EMP001', 300001.00);
+
+/*
+9 - Gestión de Usuarios
+
+a) Crear un usuario sin privilegios específicos
+b) Crear un usuario con privilegios de lectura sobre la base pubs
+c) Crear un usuario con privilegios de escritura sobre la base pubs
+d) Crear un usuario con todos los privilegios sobre la base pubs
+e) Crear un usuario con privilegios de lectura sobre la tabla titles
+f) Eliminar al usuario que tiene todos los privilegios sobre la base pubs
+g) Eliminar a dos usuarios a la vez
+h) Eliminar un usuario y sus privilegios asociados
+i) Revisar los privilegios de un usuario
+
+*/
+
+
+create user 'max'@'localhost' identified by '123';
+
+-- b) Crear un usuario con privilegios de lectura sobre la base pubs
+
+create user 'elvis'@'localhost' identified by '123';
+
+grant select on pubs.* to 'elvis'@'localhost';
+
+REVOKE SELECT, INSERT, UPDATE, DELETE ON *.* FROM 'elvis'@'localhost';
+
+-- c) Crear un usuario con privilegios de escritura sobre la base pubs
+
+create user 'yamila'@'localhost' identified by '123';
+
+grant insert on pubs.* to 'yamila'@'localhost';
+
+REVOKE SELECT, INSERT, UPDATE, DELETE ON *.* FROM 'yamila'@'localhost';
+
+-- d) Crear un usuario con todos los privilegios sobre la base pubs
+
+create user 'jorge'@'localhost' identified by '123';
+
+grant all privileges on pubs.* to 'jorge'@'localhost';
+
+REVOKE all privileges ON pubs.* FROM 'jorge'@'localhost';
+
+-- e) Crear un usuario con privilegios de lectura sobre la tabla titles
+
+create user 'lautaro'@'localhost' identified by '123';
+
+grant select on pubs.titles to 'lautaro'@'localhost';
+
+REVOKE SELECT, INSERT, UPDATE, DELETE ON *.* FROM 'lautaro'@'localhost';
+
+-- f) Eliminar al usuario que tiene todos los privilegios sobre la base pubs
+
+drop user 'jorge'@'localhost';
+
+-- g) Eliminar a dos usuarios a la vez
+
+drop user 'lautaro'@'localhost', 'yamila'@'localhost';
+
+-- h) Eliminar un usuario y sus privilegios asociados
+
+drop user 'elvis'@'localhost';
+
+
+-- i) Revisar los privilegios de un usuario
+
+select * from mysql.user;
